@@ -13,7 +13,6 @@ app = Flask(__name__)
 def home():
     return "Bienvenue sur votre application Flask !"
 
-CORS(app, origins=["http://localhost:4200"], methods=["GET", "POST", "PUT", "DELETE"], supports_credentials=True)
 
 
 
@@ -42,4 +41,4 @@ with app.app_context():
     create_tables_if_not_exist()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,port=5000)

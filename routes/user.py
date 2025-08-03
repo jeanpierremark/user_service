@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 import os
+import time
 from flask import Blueprint, request, jsonify
+from sqlalchemy import Date
 from models.models import db,User,LogConnexion
 import bcrypt
 import traceback
@@ -68,7 +70,7 @@ def login_utilisateur():
     payload = {
         "user_id": user.id,
         "role": user.role,
-        "exp": datetime.now() + timedelta(hours=24)
+        "exp": int(time.time()) + 86400 
     }
 
     token = jwt.encode(payload, os.getenv('SECRET_KEY'), algorithm="HS256")

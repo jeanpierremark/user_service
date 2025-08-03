@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 db = SQLAlchemy()
 
 #Define Enum
-define_role = ("Admin","Chercheur","Etudiant","Visiteur")
+define_role = ("Admin","Chercheur","Etudiant")
 define_genre = ("M","F")
 
 class User(db.Model):
