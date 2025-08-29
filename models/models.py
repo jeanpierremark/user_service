@@ -1,4 +1,5 @@
 
+from datetime import date
 from sqlalchemy import Integer, String, Enum, Time, Boolean, ForeignKey, Date, DateTime, ARRAY
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
@@ -9,7 +10,7 @@ db = SQLAlchemy()
 #Define Enum
 define_role = ("Admin","Chercheur","Etudiant")
 define_genre = ("M","F")
-define_categorie = ("Descriptive","Comparative","Temporelle")
+define_categorie = ("Descriptive","Comparative","Tendance","Correlation")
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -21,9 +22,10 @@ class User(db.Model):
     role = db.Column(Enum(*define_role, name="role"))
     genre = db.Column(Enum(*define_genre, name="genre"))
     age = db.Column(Integer)
-    isActive = db.Column(Boolean)
-    connected = db.Column(Boolean)
-
+    isActive = db.Column(Boolean, default = True)
+    connected = db.Column(Boolean,default = False)
+    inscription = db.Column(Date, default=date.today)  
+    last_connexion = db.Column(DateTime)
 
 
 class LogConnexion(db.Model):
@@ -32,7 +34,7 @@ class LogConnexion(db.Model):
     date_connexion = db.Column(DateTime)
     adresse_Ip = db.Column(String(50))
     resultat = db.Column(String(50))
-    user_id = db.Column(Integer, ForeignKey('users.id'))
+    user_id = db.Column(Integer, ForeignKey('users.id', ondelete="CASCADE"))
     browser = db.Column(String(50))           
     browser_version = db.Column(String(20))  
     os = db.Column(String(50))               
@@ -48,7 +50,8 @@ class UserActivite(db.Model):
     id = db.Column(Integer, primary_key = True)
     action = db.Column(String(100))
     date_action = db.Column(DateTime)
-    user_id = db.Column(Integer, ForeignKey('users.id'))
+    statut = db.Column(Boolean)
+    user_id = db.Column(Integer, ForeignKey('users.id', ondelete="CASCADE"))
 
 class MethodeAnalyse(db.Model):
     __tablename__='methode_analyses'
@@ -59,7 +62,7 @@ class MethodeAnalyse(db.Model):
     parametres = db.Column(ARRAY(String(50)))
     zone = db.Column(ARRAY(String(50)))
     complexite = db.Column(String(50))
-    user_id = db.Column(Integer, ForeignKey('users.id'))
+    user_id = db.Column(Integer, ForeignKey('users.id', ondelete="CASCADE") )
 
 
 class RapportAnalyse(db.Model):
@@ -71,13 +74,13 @@ class RapportAnalyse(db.Model):
     modification = db.Column(DateTime)
     resultat= db.Column(String(50))
     conclusion = db.Column(String(50))
-    user_id = db.Column(Integer, ForeignKey('users.id'))
+    user_id = db.Column(Integer, ForeignKey('users.id',ondelete="CASCADE") )
 
-class RapportAnalyse(db.Model):
-    __tablename__='visualisations'
-    id = db.Column(Integer, primary_key = True)
-    type = db.Column(String(100))
-    image = db.Column(String(500))
-    analyse_id = db.Column(Integer, ForeignKey('methode_analyses.id'))
+#class Visualisation(db.Model):
+    #__tablename__='visualisations'
+    #id = db.Column(Integer, primary_key = True)
+    #type = db.Column(String(100))
+    #image = db.Column(String(500))
+    #analyse_id = db.Column(Integer, ForeignKey('methode_analyses.id'))
 
 

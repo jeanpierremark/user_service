@@ -294,3 +294,5 @@ def get_token_info():
         'is_expired': False,  # Si on arrive ici, le token n'est pas expiré
         'raw_payload': user.get('full_payload', {})
     }
+
+

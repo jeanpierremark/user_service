@@ -3,7 +3,7 @@ from flask_cors import CORS
 from sqlalchemy import inspect 
 from models.models import db
 from config import Config
-from routes.user import user_routes
+from routes.admin import user_routes
 
 
 
