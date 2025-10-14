@@ -70,7 +70,7 @@ def add_user():
         age = user.get('age')
         genre = 'M' if user.get('genre') == "Homme" else 'F'   
         new_user = User(nom=nom, prenom=prenom,email=email,password=password, role=role,genre=genre,age=age,isActive=isActive,connected=connected,inscription=inscription)
-        
+
         db.session.add(new_user)
         db.session.commit()
         return jsonify({"message": "success"}), 200
@@ -306,17 +306,35 @@ def logout_utilisateur():
 @user_routes.route('user/info',methods=['GET'])
 @token_required
 def get_user_info():
-    active_users = User.query.where(User.isActive == True).count()
-    connected_users = User.query.where(User.connected == True).count()
-    block_users = User.query.where(User.isActive == False).count()
-    analyse = MethodeAnalyse.query.count()
-    return jsonify({
-        "message":"success",
-        "active_users" : active_users,
-        "connected_users":connected_users,
-        "blocked_users":block_users,
-        "analyses":analyse
-    }),200
+    try:
+        active_users = User.query.where(User.isActive == True).count()
+        connected_users = User.query.where(User.connected == True).count()
+        block_users = User.query.where(User.isActive == False).count()
+        analyse = MethodeAnalyse.query.count()
+        chercheurs = User.query.where(User.role == 'Chercheur').count()
+        etudiants = User.query.where(User.role == 'Etudiant').count()
+        hommes = User.query.where(User.genre == 'M').count()
+        femmes = User.query.where(User.genre == 'F').count()
+
+
+        return jsonify({
+            "message":"success",
+            "active_users" : active_users,
+            "connected_users":connected_users,
+            "blocked_users":block_users,
+            "analyses":analyse,
+            "etudiants":etudiants,
+            'chercheurs':chercheurs,
+            'femmes' : femmes,
+            'hommes' : hommes
+        }),200
+    
+    except Exception as e:
+        return jsonify({
+            'message': 'error',
+            'error': 'Erreur lors de la récupération des infos',
+            'message': str(e)
+        }), 500
 
 #Get all users
 @user_routes.route('/user/all', methods=['GET'])
@@ -393,56 +411,63 @@ def get_latest_user():
 
 
 #Get all log
-@user_routes.route('/user/all_log', methods=['GET'])
-@token_required
-def get_all_log():
+@user_routes.route('/user/log/<int:id>', methods=['GET'])
+def get_all_log(id):
     try:
         user_log_data = db.session.query(
-        User.id,
-        User.prenom,
-        User.nom,
-        User.email,
-        LogConnexion.date_connexion,
-        LogConnexion.adresse_Ip,
-        LogConnexion.resultat,
-        LogConnexion.device,
-        LogConnexion.is_mobile,
-        LogConnexion.is_bot,
-        LogConnexion.is_pc,
-        LogConnexion.is_tablet,
-        LogConnexion.browser,
-        LogConnexion.browser_version
-        ).join(LogConnexion).order_by(LogConnexion.date_connexion.desc()).all()
+            User.id,
+            User.role,
+            User.prenom,
+            User.nom,
+            User.email,
+            User.isActive,
+            LogConnexion.date_connexion,
+            LogConnexion.adresse_Ip, 
+            LogConnexion.resultat,
+            LogConnexion.device,
+            LogConnexion.is_mobile,
+            LogConnexion.is_bot,
+            LogConnexion.is_pc,
+            LogConnexion.is_tablet,
+            LogConnexion.browser,
+            LogConnexion.browser_version
+        ).join(LogConnexion, User.id == LogConnexion.user_id).filter(User.id == id).order_by(LogConnexion.date_connexion.desc()).first()
 
-        log_list = []
-        for log in user_log_data:
-            log_list.append({
-                'id': log.id,
-                'prenom':log.prenom,
-                'nom': log.nom,
-                'email': log.email,
-                'date_connexion' : log.date_connexion,
-                'resultat': log.resultat,
-                'mobile':log.is_mobile,
-                'device':log.device,
-                'bot': log.is_bot,
-                'pc':log.is_pc,
-                'tablet':log.is_tablet,
-                'adresse_Ip':log.adresse_Ip,
-                'browser':log.browser,
-                'browser_version':log.browser_version
-            })
-        
+        if not user_log_data:
+            return jsonify({
+                'message': 'No log data found for user ID {}'.format(id)
+            }), 404
+
+        # Convert query result to dictionary for JSON serialization
+        user_log_dict = {
+            'id': user_log_data.id,
+            'prenom': user_log_data.prenom,
+            'nom': user_log_data.nom,
+            'role':user_log_data.role,
+            'isActive':user_log_data.isActive,
+            'email': user_log_data.email,
+            'date_connexion': user_log_data.date_connexion.isoformat() if user_log_data.date_connexion else None,
+            'adresse_ip': user_log_data.adresse_Ip,
+            'resultat': user_log_data.resultat,
+            'device': user_log_data.device,
+            'is_mobile': user_log_data.is_mobile,
+            'is_bot': user_log_data.is_bot,
+            'is_pc': user_log_data.is_pc,
+            'is_tablet': user_log_data.is_tablet,
+            'browser': user_log_data.browser,
+            'browser_version': user_log_data.browser_version
+        }
+
         return jsonify({
             'message': 'success',
-            'log_list': log_list,
+            'user_log': user_log_dict
         }), 200
-        
+
     except Exception as e:
         return jsonify({
             'message': 'error',
-            'error': 'Erreur lors de la récupération des utilisateurs',
-            'message': str(e)
+            'error': 'Erreur lors de la récupération des données de connexion',
+            'details': str(e)
         }), 500
     
 
