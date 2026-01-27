@@ -1,3 +1,9 @@
 flask
 python_dotenv
 flask-sqlalchemy
+sqlalchemy
+flask_cors
+bcrypt
+PyJWT
+user_agents
+psycopg2-binary

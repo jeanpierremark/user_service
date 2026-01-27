@@ -8,10 +8,9 @@ import os
 
 
 load_dotenv() 
-JWT_SECRET_KEY = os.getenv('SECRET_KEY')  # Corrigé: était 'SECRET_KEY'
+JWT_SECRET_KEY = os.getenv('SECRET_KEY')
 
 class AuthMiddleware:
-    """Classe pour gérer l'authentification et l'autorisation"""
     
     def __init__(self, app=None):
         self.app = app
@@ -19,14 +18,12 @@ class AuthMiddleware:
             self.init_app(app)
     
     def init_app(self, app):
-        """Initialiser l'application Flask avec le middleware"""
         self.app = app
         # Configuration par défaut
         app.config.setdefault('JWT_SECRET_KEY', os.getenv('JWT_SECRET_KEY', 'default-secret-key'))
         app.config.setdefault('JWT_ALGORITHM', 'HS256')
     
     def extract_token_from_header(self, auth_header):
-        """Extraire le token du header Authorization"""
         if not auth_header:
             return None, "Header Authorization manquant"
         
@@ -86,7 +83,6 @@ class AuthMiddleware:
             return None, f"Erreur lors du décodage du token: {str(e)}"
     
     def get_user_info_from_token(self, token_payload):
-        """Extraire les informations utilisateur du payload du token"""
         return {
             'id': token_payload.get('user_id'),
             'role': token_payload.get('role'),
@@ -94,7 +90,6 @@ class AuthMiddleware:
         }
     
     def token_required(self, f):
-        """Décorateur pour vérifier la présence et la validité du token JWT"""
         @wraps(f)
         def decorated(*args, **kwargs):
             # Récupérer l'en-tête Authorization
@@ -127,7 +122,6 @@ class AuthMiddleware:
         return decorated
     
     def role_required(self, allowed_roles):
-        """Décorateur pour vérifier les rôles utilisateur"""
         if isinstance(allowed_roles, str):
             allowed_roles = [allowed_roles]
         
@@ -161,7 +155,6 @@ class AuthMiddleware:
         return decorator
     
     def permission_required(self, required_permissions):
-        """Décorateur pour vérifier les permissions utilisateur"""
         if isinstance(required_permissions, str):
             required_permissions = [required_permissions]
         
@@ -200,7 +193,7 @@ class AuthMiddleware:
         return decorator
     
     def optional_auth(self, f):
-        """Décorateur pour une authentification optionnelle"""
+        
         @wraps(f)
         def decorated(*args, **kwargs):
             auth_header = request.headers.get('Authorization')

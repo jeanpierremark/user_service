@@ -233,49 +233,29 @@ def login_utilisateur():
 
 # Logout
 @user_routes.route('/user/logout', methods=['POST'])
-@token_required
 def logout_utilisateur():
     auth_header = request.headers.get('Authorization')
     if not auth_header:
         return jsonify({"error": "Token is missing"}), 401
 
-    try:
-        # Extraire le token en supprimant "Bearer "
         if auth_header.startswith('Bearer '):
             token = auth_header.split(' ')[1] 
-            print(token) # Récupère la partie après "Bearer "
         else:
-            token = auth_header  # Si pas de préfixe Bearer
+            token = auth_header  
             
         payload = jwt.decode(token,os.getenv('SECRET_KEY'), algorithms=["HS256"])
         user_id = payload['user_id']
-        #print(payload)
-    except jwt.ExpiredSignatureError:
-        date_ac = datetime.now()
-        new_activity = UserActivite(action="Erreur Déconnexion token expiré",date_action=date_ac,statut=False,user_id= user_id)
-        db.session.add(new_activity)
-        return jsonify({"error": "Token has expired"}), 401
-    except jwt.InvalidTokenError:
-        date_ac = datetime.now()
-        new_activity = UserActivite(action="Erreur Déconnexion token invalide",date_action=date_ac,statut=False,user_id= user_id)
-        db.session.add(new_activity)
-        return jsonify({"error": "Invalid token"}), 401
-    except IndexError:
-        date_ac = datetime.now()
-        new_activity = UserActivite(action="Erreur Déconnexion Authorisation invalide",date_action=date_ac,statut=False,user_id= user_id)
-        db.session.add(new_activity)
-        return jsonify({"error": "Invalid Authorization header format"}), 401
-
-    
 
     user_agent = request.headers.get('User-Agent')
     user_agent = parse(user_agent)
 
     datedecon = date.today().strftime("%Y-%m-%d")
     ip = request.remote_addr
-    user_id = user_id
+    data = request.json
+    user_id = data.get('id')
     resultat = "Déconnexion réussie"
     user = User.query.where(User.id==user_id).first()
+    print(user)
     user.connected = False
     user.last_connexion = datetime.now().strftime("%Y-%m-%d %H:%M")
     new_log = LogConnexion(
@@ -679,9 +659,9 @@ def getloghistory(period):
 
 
 
-#Get all user activity
+#Save all user activity
 @user_routes.route('/user/do_something', methods=['POST'])
-@token_required
+#@token_required
 def do_something():
     data = request.json
     id = data.get('id')
@@ -700,7 +680,7 @@ def do_something():
 def suspend():
     data = request.json
     id =data.get('id')
-    suspend = data.get('suspend')
+    suspend = data.get('suspend') 
     user = User.query.get(id)
     if not user :
         return jsonify({"message": "User not found"}), 404
